@@ -69,8 +69,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	address.sin_family = AF_INET;
-		address.sin_addr.s_addr = INADDR_ANY;
-		address.sin_port = htons(port);
+		address.sin_addr.s_addr = INADDR_ANY; //IPV4
+		address.sin_port = htons(port); // Host to network short
 
 
 	// Bind to the port
@@ -79,21 +79,21 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Listen for connections
-		if (listen(server_fd, MAX_QUEUE_LENGTH) < 0) {
-		write_message("listen: Failed to listen on socket", 'e');
-				perror("listen");
-		}
+	if (listen(server_fd, MAX_QUEUE_LENGTH) < 0) {
+	write_message("listen: Failed to listen on socket", 'e');
+		perror("listen");
+	}
 
 	while(1) {
 		// Check if accept fails
 		int client_socket;
 		int addrlen = sizeof(address);
-				if ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
+		if ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
 			// If it does print the error to the console
 			write_message("Accept failed!", 'e');
-						perror("accept");
-						continue;
-				}
+			perror("accept");
+			continue;
+		}
 
 		// Read the incoming request
 		long request_length = read(client_socket, request, REQUEST_LENGTH);
@@ -123,15 +123,15 @@ int main(int argc, char *argv[]) {
 		snprintf(local_file_path, MAX_FILE_PATH,SERVER_ROOT_DIRECTORY, requested_file_path);
 
 		if(strncmp(method, "GET", 3) == 0) {
-						handle_get_request(client_socket, local_file_path);
-				} else if(strncmp(method, "HEAD", 4) == 0) {
+			handle_get_request(client_socket, local_file_path);
+		} else if(strncmp(method, "HEAD", 4) == 0) {
 			handle_head_request(client_socket, local_file_path);
-				} else if(strncmp(method, "DELETE", 6) == 0) {
+		} else if(strncmp(method, "DELETE", 6) == 0) {
 			handle_delete_request(client_socket, local_file_path);
-				} else {
+		} else {
 			strcpy(message, "<html><body><h1>501 Not Implemented</h1></body></html>");
-						send_response(client_socket, "501 Not Implemented", "text/html", message, strlen(message));
-				}
+			send_response(client_socket, "501 Not Implemented", "text/html", message, strlen(message));
+		}
 	}
 
 	// Free allocated memmory
@@ -175,16 +175,17 @@ void send_response(int client_socket, const char *status, const char *content_ty
 	char message[MESSAGE_LENGTH];
 	char header[HEADER_SIZE];
 
+	// Send the header
 	snprintf(header, HEADER_SIZE, "HTTP/1.1 %s\r\nContent-Type: %s\r\nContent-Length: %ld\r\n\r\n", status, content_type, body_length);
 	send(client_socket, header, strlen(header), 0);
 
+	// Log the sent header
 	snprintf(message, MESSAGE_LENGTH, "\tOutgoing Header\n%s", header);
 	write_message(message, 'i');
 
 	if (body && body_length > 0) {
 		// Log the response body
-	snprintf(message, MESSAGE_LENGTH, "\tOutgoing Body\n%.*s", MESSAGE_LENGTH - 20, body);
-
+		snprintf(message, MESSAGE_LENGTH, "\tOutgoing Body\n%.*s", MESSAGE_LENGTH - 20, body);
 		write_message(message, 'i');
 
 		// Send the response body

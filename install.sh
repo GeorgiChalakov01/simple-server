@@ -7,11 +7,12 @@ gcc main.c -o server_chalakov
 echo installing
 sudo cp server_chalakov /usr/local/bin
 sudo chmod 755 /usr/local/bin/server_chalakov
+rm server_chalakov
 
 echo creating www
 mkdir ~/www
 
-echo creating an sample index.html file
+echo creating a sample index.html file
 echo "<!DOCTYPE html>
 <html>
 <head>
